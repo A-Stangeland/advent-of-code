@@ -23,14 +23,14 @@ class GridIterator:
         self.l = 0
         self.r = 0
 
-    def calculate_scenic_score(self):
+    def calculate_scenic_score(self) -> int:
         self.up()
         self.down()
         self.left()
         self.right()
         return self.scenic_score
 
-    def up(self):
+    def up(self) -> None:
         i, j = self.i, self.j
         while True:
             i -= 1
@@ -40,7 +40,7 @@ class GridIterator:
             if self.is_taller(i, j):
                 break
 
-    def down(self):
+    def down(self) -> None:
         i, j = self.i, self.j
         while True:
             i += 1
@@ -50,7 +50,7 @@ class GridIterator:
             if self.is_taller(i, j):
                 break
 
-    def left(self):
+    def left(self) -> None:
         i, j = self.i, self.j
         while True:
             j -= 1
@@ -60,7 +60,7 @@ class GridIterator:
             if self.is_taller(i, j):
                 break
             
-    def right(self):
+    def right(self) -> None:
         i, j = self.i, self.j
         while True:
             j += 1
@@ -70,16 +70,16 @@ class GridIterator:
             if self.is_taller(i, j):
                 break
             
-    def valid_index(self, i, j):
+    def valid_index(self, i: int, j: int) -> bool:
         if 0 <= i < self.n and 0 <= j < self.m:
             return True
         return False
     
-    def is_taller(self, i, j):
+    def is_taller(self, i: int, j: int) -> bool:
         return self.grid[i, j] >= self.grid[self.i, self.j]
 
     @property
-    def scenic_score(self):
+    def scenic_score(self) -> int:
         return self.u * self.d * self.l * self.r
 
 def load_grid(path: str) -> np.ndarray:
@@ -99,7 +99,7 @@ def print_grid_visibility(grid: np.ndarray, visible: np.ndarray) -> None:
         print()
     print()
 
-def visible_trees(grid):
+def visible_trees(grid: np.ndarray) -> np.ndarray:
     n, m = grid.shape
     visible = np.zeros_like(grid)
     visible[0] = 1
@@ -127,7 +127,7 @@ def visible_trees(grid):
     
     return visible
 
-def get_scenic_score(grid: np.ndarray):
+def get_scenic_score(grid: np.ndarray) -> np.ndarray:
     scenic = np.zeros_like(grid)
     n, m = grid.shape
     for i in range(n):
