@@ -26,7 +26,12 @@ def print_grid(grid: np.ndarray, visible: np.ndarray) -> None:
     for i in range(n):
         for j in range(m):
             if visible[i,j]:
-                print(f"{bcolors.WARNING}Warning: No active frommets remain. Continue?{bcolors.ENDC}")
+                print(f"{bcolors.OKGREEN}{grid[i,j]}{bcolors.ENDC}", end='')
+                # print(f"{grid[i,j]}", end='')
+            else:
+                print(f"{bcolors.FAIL}{grid[i,j]}{bcolors.ENDC}", end='')
+                # print(f"{grid[i,j]}", end='')
+        print()
     
     print()
 
@@ -45,7 +50,7 @@ def visible_trees(grid):
         down_max = np.maximum(down_max, grid[i])
 
         visible[-i-1] |= grid[-i-1] > up_max
-        up_max = np.maximum(down_max, grid[-i-1])
+        up_max = np.maximum(up_max, grid[-i-1])
 
     right_max = np.zeros(n)
     left_max = np.zeros(n)
@@ -60,7 +65,7 @@ def visible_trees(grid):
 
 grid = load_grid('day08-input')
 # grid = load_grid('tmp')
-print_grid(grid)
 visible = visible_trees(grid)
-print_grid(visible)
+print_grid(grid, visible)
+# print_grid(visible)
 print(np.sum(visible))
