@@ -18,9 +18,16 @@ def load_grid(path: str) -> np.ndarray:
     grid = np.array([[int(c) for c in l] for l in lines])
     return grid
 
-def print_grid(grid: np.ndarray) -> None:
-    for l in grid:
-        print(''.join([str(x) for x in l]))
+def print_grid(grid: np.ndarray, visible: np.ndarray) -> None:
+    # for l in grid:
+    #     print(''.join([str(x) for x in l]))
+
+    n, m = grid.shape
+    for i in range(n):
+        for j in range(m):
+            if visible[i,j]:
+                print(f"{bcolors.WARNING}Warning: No active frommets remain. Continue?{bcolors.ENDC}")
+    
     print()
 
 def visible_trees(grid):
