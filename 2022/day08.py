@@ -78,13 +78,6 @@ class GridIterator:
     def is_taller(self, i, j):
         return self.grid[i, j] >= self.grid[self.i, self.j]
 
-    def stop_search(self, i, j):
-        if not self.valid_index(i, j):
-            return True
-        if self.grid[i, j] >= self.grid[self.i, self.j]:
-            return True
-        return False
-
     @property
     def scenic_score(self):
         return self.u * self.d * self.l * self.r
@@ -95,20 +88,14 @@ def load_grid(path: str) -> np.ndarray:
     grid = np.array([[int(c) for c in l] for l in lines])
     return grid
 
-def print_grid(grid):
-    for l in grid:
-        print(''.join([str(x) for x in l]))
-
 def print_grid_visibility(grid: np.ndarray, visible: np.ndarray) -> None:
     n, m = grid.shape
     for i in range(n):
         for j in range(m):
             if visible[i,j]:
                 print(f"{bcolors.OKGREEN}{grid[i,j]}{bcolors.ENDC}", end='')
-                # print(f"{grid[i,j]}", end='')
             else:
                 print(f"{bcolors.FAIL}{grid[i,j]}{bcolors.ENDC}", end='')
-                # print(f"{grid[i,j]}", end='')
         print()
     print()
 
@@ -151,10 +138,8 @@ def get_scenic_score(grid: np.ndarray):
     return scenic
 
 grid = load_grid('day08-input')
-# grid = load_grid('tmp')
 visible = visible_trees(grid)
 scenic = get_scenic_score(grid)
 print_grid_visibility(grid, visible)
 print(f'Number of visible trees from outside grid: {np.sum(visible)}')
-print(scenic)
 print(f'Highest scenic score: {np.max(scenic)}')
