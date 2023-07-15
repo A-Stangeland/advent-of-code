@@ -11,6 +11,83 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+class GridIterator:
+    def __init__(self, grid: np.ndarray, i: int, j: int) -> None:
+        self.grid = grid
+        self.n = grid.shape[0]
+        self.m = grid.shape[1]
+        self.i = i
+        self.j = j
+        self.u = 0
+        self.d = 0
+        self.l = 0
+        self.r = 0
+
+    def calculate_scenic_score(self):
+        self.up()
+        self.down()
+        self.left()
+        self.right()
+        return self.scenic_score
+
+    def up(self):
+        i, j = self.i, self.j
+        while True:
+            i -= 1
+            if not self.valid_index(i, j):
+                break
+            self.u += 1
+            if self.is_taller(i, j):
+                break
+
+    def down(self):
+        i, j = self.i, self.j
+        while True:
+            i += 1
+            if not self.valid_index(i, j):
+                break
+            self.d += 1
+            if self.is_taller(i, j):
+                break
+
+    def left(self):
+        i, j = self.i, self.j
+        while True:
+            j -= 1
+            if not self.valid_index(i, j):
+                break
+            self.l += 1
+            if self.is_taller(i, j):
+                break
+            
+    def right(self):
+        i, j = self.i, self.j
+        while True:
+            j += 1
+            if not self.valid_index(i, j):
+                break
+            self.r += 1
+            if self.is_taller(i, j):
+                break
+            
+    def valid_index(self, i, j):
+        if 0 <= i < self.n and 0 <= j < self.m:
+            return True
+        return False
+    
+    def is_taller(self, i, j):
+        return self.grid[i, j] >= self.grid[self.i, self.j]
+
+    def stop_search(self, i, j):
+        if not self.valid_index(i, j):
+            return True
+        if self.grid[i, j] >= self.grid[self.i, self.j]:
+            return True
+        return False
+
+    @property
+    def scenic_score(self):
+        return self.u * self.d * self.l * self.r
 
 def load_grid(path: str) -> np.ndarray:
     with open(path) as f:
@@ -18,10 +95,11 @@ def load_grid(path: str) -> np.ndarray:
     grid = np.array([[int(c) for c in l] for l in lines])
     return grid
 
-def print_grid(grid: np.ndarray, visible: np.ndarray) -> None:
-    # for l in grid:
-    #     print(''.join([str(x) for x in l]))
+def print_grid(grid):
+    for l in grid:
+        print(''.join([str(x) for x in l]))
 
+def print_grid_visibility(grid: np.ndarray, visible: np.ndarray) -> None:
     n, m = grid.shape
     for i in range(n):
         for j in range(m):
@@ -32,7 +110,6 @@ def print_grid(grid: np.ndarray, visible: np.ndarray) -> None:
                 print(f"{bcolors.FAIL}{grid[i,j]}{bcolors.ENDC}", end='')
                 # print(f"{grid[i,j]}", end='')
         print()
-    
     print()
 
 def visible_trees(grid):
@@ -63,9 +140,21 @@ def visible_trees(grid):
     
     return visible
 
+def get_scenic_score(grid: np.ndarray):
+    scenic = np.zeros_like(grid)
+    n, m = grid.shape
+    for i in range(n):
+        for j in range(m):
+            if grid[i,j] == 0: continue
+            g = GridIterator(grid, i, j)
+            scenic[i,j] = g.calculate_scenic_score()
+    return scenic
+
 grid = load_grid('day08-input')
 # grid = load_grid('tmp')
 visible = visible_trees(grid)
-print_grid(grid, visible)
-# print_grid(visible)
-print(np.sum(visible))
+scenic = get_scenic_score(grid)
+print_grid_visibility(grid, visible)
+print(f'Number of visible trees from outside grid: {np.sum(visible)}')
+print(scenic)
+print(f'Highest scenic score: {np.max(scenic)}')
