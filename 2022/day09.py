@@ -1,4 +1,4 @@
-from typing import Self, Callable
+from typing import Self, Callable, Iterator
 
 class Knot:
     def __init__(self, ahead: Self, behind=None) -> None:
@@ -140,7 +140,7 @@ class RopeSimulator:
         self.rope = Rope(rope_length)
 
     @staticmethod
-    def move_generator(path):
+    def move_generator(path: str) -> Iterator[tuple[str, int]]:
         with open(path) as f:
             moves = f.read().splitlines()
     
@@ -148,7 +148,7 @@ class RopeSimulator:
             direction, steps = move.split(' ')
             yield direction, int(steps)
 
-    def simulate(self):
+    def simulate(self) -> None:
         for direction, n in self.moves:
             match direction:
                 case 'U': self.rope.U(n)
