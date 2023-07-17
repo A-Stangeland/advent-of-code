@@ -1,5 +1,5 @@
-from typing import Any, Sequence
-
+from typing import Callable, Sequence, Iterable
+from functools import reduce
 
 class Operation:
     def __init__(self, expression) -> None:
@@ -37,7 +37,7 @@ class Test:
         return '\n'.join(self.expression) + '\n'
 
 class Monkey:
-    def __init__(self, troop, n, starting_items, operation, test) -> None:
+    def __init__(self, troop: "Troop", n: int, starting_items: Iterable[int], operation: Operation, test: Test) -> None:
         self.troop = troop
         self.n = n
         self.items = starting_items
@@ -48,7 +48,7 @@ class Monkey:
     def inspect(self):
         while len(self.items) > 0:
             item = self.items.pop(0)
-            item = self.operation(item) // 3
+            item = self.operation(item) % self.troop.common_divisor
             self.num_inspected += 1
             self.test_item(item)
     
@@ -73,6 +73,8 @@ class Troop:
     def __init__(self, path) -> None:
         self.monkeys: Sequence[Monkey] = []
         self.populate(path)
+        self.common_divisor = self.find_common_divisor()
+        self.round_count = 0
 
     def populate(self, path):
         with open(path) as f:
@@ -86,12 +88,21 @@ class Troop:
             self.monkeys.append(new_monkey)
             lines = lines[7:]
     
-    def rounds(self, n):
+    def find_common_divisor(self) -> int:
+        return reduce(lambda a, b: a * b, [m.test.divisor for m in self.monkeys])
+    
+    def rounds(self, n, print_rounds=None):
+        if print_rounds is None:
+            print_rounds = []
         for _ in range(n):
             for monkey in self.monkeys:
                 monkey.inspect()
+            self.round_count += 1
+            if self.round_count in print_rounds:
+                self.print_num_inspected()
 
     def print_num_inspected(self):
+        print(f'== After round {self.round_count} ==')
         for m in self.monkeys:
             print(f'Monkey {m.n} inspected items {m.num_inspected} times.')
         print()
@@ -105,7 +116,6 @@ class Troop:
         return '\n'.join(str(m) for m in self.monkeys) + '\n'
 
 troop = Troop('day11-input')
-troop.rounds(20)
 print(troop)
-troop.print_num_inspected()
+troop.rounds(10000, print_rounds=[10000])
 print(troop.monkey_business)
