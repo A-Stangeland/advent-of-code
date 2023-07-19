@@ -28,8 +28,6 @@ class Distance:
         return self.d == other.d
 
     def __lt__(self, other: "Distance") -> bool:
-        # if self.d == other.d:
-            # return True
         if self.d == 'inf':
             return False
         if other.d == 'inf':
@@ -173,7 +171,6 @@ class Dijkstra:
 
     def solve(self):
         while len(self.unvisited) > 0:
-            # print(len(self.unvisited))
             current_node = self.pop_unvisited()
             new_distance = current_node.d + 1
             for neighbor in self.neighbors(current_node):
