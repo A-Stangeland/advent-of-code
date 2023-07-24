@@ -1,4 +1,4 @@
-from typing import Iterable, Optional, Any, Self
+from typing import Iterable, Any, Self
 from dataclasses import dataclass
 from functools import total_ordering
 
@@ -108,8 +108,10 @@ class Grid:
             for j in range(self.width):
                 yield self.values[i][j]
 
-    def print_path(self, end_node: Node) -> None:
-        height_grid = [[alphabet[n.h] for n in row] + '\n' for row in self.values]
+    def print_height(self) -> None:
+        height_grid = ''.join([''.join([alphabet[n.h] for n in row]) + '\n' for row in self.values])
+        height_grid = ''.join([bcolors.FAIL + c + bcolors.ENDC if c == 'a' else c for c in height_grid])
+        print(height_grid)
 
 
 class Dijkstra:
@@ -219,6 +221,7 @@ class Dijkstra:
                     print_grid[i, j] = self.grid[i,j].direction
         print(print_grid)
     
-d = Dijkstra('day12-input', reverse=True)
+d = Dijkstra('day12-input')
 d.solve()
-d.find_min()
+d.print_path(d.end_node)
+d.grid.print_height()
