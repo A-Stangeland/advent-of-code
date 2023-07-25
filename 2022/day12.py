@@ -49,6 +49,11 @@ class Distance:
     
     def __str__(self) -> str:
         return str(self.d)
+    
+    def __int__(self) -> int:
+        if self.d == 'inf':
+            raise ValueError('Distance with value inf can not be converted to inf.')
+        return self.d
             
 @dataclass
 class Node:
@@ -221,7 +226,9 @@ class Dijkstra:
                     print_grid[i, j] = self.grid[i,j].direction
         print(print_grid)
     
-d = Dijkstra('day12-input')
-d.solve()
-d.print_path(d.end_node)
-d.grid.print_height()
+
+if __name__ == '__main__':
+    d = Dijkstra('day12-input')
+    d.solve()
+    d.print_path(d.end_node)
+    d.grid.print_height()
