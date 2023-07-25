@@ -1,4 +1,5 @@
 import re
+from copy import copy
 from dataclasses import dataclass
 from typing import Iterable, Optional, Self
 
@@ -21,6 +22,14 @@ class Valve:
     def __str__(self) -> str:
         return f"Valve {self.name} has flow rate={self.flowrate}; tunnels lead to valve{'s' if len(self.downstream_names) > 1 else ''} {', '.join(self.downstream_names)}"
 
+@dataclass
+class Move:
+    target: str
+    potential: int
+    remaining_time: int
+
+    def __repr__(self) -> str:
+        return f"Move(target={self.target.name}, potential={self.potential}, remaining_time={self.remaining_time})"
 
 class Graph:
     def __init__(self, path: str) -> None:
@@ -49,7 +58,7 @@ class Graph:
         flowrate = int(re.findall(r'rate=(\d+)', line)[0])
         downstream_names = re.findall(r'(?:valve |valves )(.+)', line)[0].split(', ')
         return Valve(name, flowrate, downstream_names)
-
+    
     def flow_potential(self, current_valve: Valve, remaining_time: int, open_valves: set[Valve]):
         valve_potential = dict()
         for k, v in self.items():
@@ -77,7 +86,7 @@ class Graph:
         
         valve_potential = self.flow_potential(current_valve, remaining_time, open_valves)
         total_flow_potential = sum(valve_potential.values())
-        current_flowrate = sum([v.flowrate for v in open_valves])
+        current_flowrate = sum(v.flowrate for v in open_valves)
 
         if total_flow_potential == 0:
             return self.priority_search(
@@ -103,8 +112,128 @@ class Graph:
             outcomes.add(res)
         return max(outcomes)
 
+    def flow_potential_multi_agent(self, current_valves: tuple[Valve], remaining_time: int, open_valves: set[Valve]):
+        v1, v2 = current_valves
+        moves = []
+        for target1 in self.valves.values():
+            for target2 in self.valves.values():
+                if target1 == target2 or target1 in open_valves or target2 in open_valves:
+                    continue
+                d1 = self.distances[v1.name, target1.name]
+                d2 = self.distances[v2.name, target2.name]
+                p1 = max(0, remaining_time - d1 - 1) * target1.flowrate
+                p2 = max(0, remaining_time - d2 - 1) * target2.flowrate
+                if p1 + p2 == 0:
+                    continue
+                m1 = Move(target1, p1, d1+1)
+                m2 = Move(target2, p2, d2+1)
+                if v1 == v2 and (m2, m1) in moves:
+                    continue
+                moves.append((m1, m2))
+        return moves
+    
+    def flow_potential_single_agent(self, current_valve: Valve, remaining_time: int, open_valves: set[Valve]):
+        moves = []
+        for target in self.valves.values():
+            if target in open_valves:
+                continue
+            d = self.distances[current_valve.name, target.name]
+            p = max(0, remaining_time - d - 1) * target.flowrate
+            if p == 0:
+                continue
+            moves.append(Move(target, p, d+1))
+        if len(moves) == 0:
+            moves = [Move(current_valve, 0, remaining_time)]
+        return moves
+    
+    def multi_agent_search(self, 
+                           current_valves: Valve=None, 
+                           current_moves: tuple[Move, Move]=(None,None), 
+                           remaining_time: int=26, 
+                           open_valves: set[Valve]=None, 
+                           total_flow: int=0, 
+                           moves=())  -> int:
+        if remaining_time == 0:
+            self.n_searched += 1
+            if total_flow > self.max_flow:
+                for m in moves:
+                    print(m)
+                print('>>> Total flow:', total_flow)
+                print('>>> N searched:', self.n_searched)
+                print()
+                self.max_flow = total_flow
+            return total_flow
+        if current_valves is None:
+            current_valves = self.valves['AA'], self.valves['AA']
+        if open_valves is None:
+            open_valves = set()
+        
+        v1, v2 = current_valves
+        m1, m2 = current_moves
+        current_flowrate = sum(v.flowrate for v in open_valves)
+        
+        if m1 is None and m2 is None:
+            next_moves = self.flow_potential_multi_agent(current_valves, remaining_time, open_valves)
+        elif m1 is None:
+            next_move1 = self.flow_potential_single_agent(v1, remaining_time, open_valves | {m2.target})
+            next_moves = [(m, m2) for m in next_move1]
+        elif m2 is None:
+            next_move2 = self.flow_potential_single_agent(v2, remaining_time, open_valves | {m1.target})
+            next_moves = [(m1, m) for m in next_move2]
+        else:
+            raise Exception('This should not happen')
+
+        total_flow_potential = sum(ma.potential + mb.potential for ma, mb in next_moves)
+        if total_flow_potential == 0:
+            return self.multi_agent_search(
+                current_valves,
+                (None, None),
+                0, 
+                open_valves, 
+                total_flow + current_flowrate*remaining_time, 
+                moves + (f'{26-remaining_time:>2} Wait {remaining_time} minutes, flow rate: {current_flowrate:>3}, total flow: {total_flow:>4}',)
+            )
+        
+        outcomes = set()
+        for m1, m2 in sorted(next_moves, key=lambda x: x[0].potential + x[1].potential, reverse=True):
+            time_to_next_move = min(m1.remaining_time, m2.remaining_time)
+            next_open_valves = copy(open_valves)
+            open_valve_text = f'valves {", ".join(v.name for v in open_valves)} are open' if len(open_valves) > 0 else 'No valves are open'
+            next_moves = (f'{26-remaining_time:>2} - {open_valve_text}, flow rate: {current_flowrate:>3}, total flow: {total_flow:>4}',
+                          f'- Agent A opening {m1.target.name} in {m1.remaining_time}',
+                          f'- Agent B opening {m2.target.name} in {m2.remaining_time}')
+            if m1.remaining_time - time_to_next_move == 0:
+                next_v1 = m1.target
+                next_m1 = None
+                next_open_valves.add(m1.target)
+            else:
+                next_v1 = v1
+                next_m1 = Move(m1.target, m1.potential, m1.remaining_time - time_to_next_move)
+            if m2.remaining_time - time_to_next_move == 0:
+                next_v2 = m2.target
+                next_m2 = None
+                next_open_valves.add(m2.target)
+            else:
+                next_v2 = v2
+                next_m2 = Move(m2.target, m2.potential, m2.remaining_time - time_to_next_move)
+            res = self.multi_agent_search(
+                (next_v1, next_v2),
+                (next_m1, next_m2),
+                remaining_time - time_to_next_move, 
+                next_open_valves, 
+                total_flow + current_flowrate*time_to_next_move, 
+                moves + next_moves
+            )
+            outcomes.add(res)
+        return max(outcomes)
+
+                
+
     def items(self) -> Iterable[tuple[str, Valve]]:
         return self.valves.items()
+    
+    def values(self) -> Iterable[Valve]:
+        return self.valves.values()
 
     def __getitem__(self, key: str) -> Valve:
         return self.valves[key]
@@ -165,4 +294,6 @@ class GraphDistances:
         return '\n'.join(lines)
 
 g = Graph('day16-input')
+# g = Graph('input.txt')
 g.priority_search()
+# g.multi_agent_search()
