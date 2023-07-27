@@ -37,10 +37,6 @@ class Point:
     def __str__(self) -> str:
         return str(self.coords)
 
-# class Line:
-#     def __init__(self, origin: tuple[int, int], direction: tuple[int, int]) -> None:
-#         self.origin = origin
-#         self.direction = direction
 
 class SensorReport:
     x_pattern = r'x=(-?\d+)'
