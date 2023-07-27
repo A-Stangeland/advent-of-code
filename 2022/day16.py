@@ -2,6 +2,8 @@ import re
 from copy import copy
 from dataclasses import dataclass
 from typing import Iterable, Optional, Self
+from timeit import timeit
+import pdb
 
 from day12 import Distance
 
@@ -19,6 +21,9 @@ class Valve:
         for v in self.downstream_names:
             self.downstream[v] = valves[v]
     
+    def __repr__(self) -> str:
+        return f"Valve({self.name}, {self.flowrate}, [{', '.join(self.downstream_names)}])"
+
     def __str__(self) -> str:
         return f"Valve {self.name} has flow rate={self.flowrate}; tunnels lead to valve{'s' if len(self.downstream_names) > 1 else ''} {', '.join(self.downstream_names)}"
 
@@ -34,9 +39,10 @@ class Move:
 class Graph:
     def __init__(self, path: str) -> None:
         self.valves = self.parse_file(path)
-        self.max_flow = 0
+        self.max_total_flow = 0
         self.n_searched = 0
-        self.non_zero_valves = sum([int(v.flowrate > 0) for v in self.valves.values()])
+        self.non_zero_valves = sum(int(v.flowrate > 0) for v in self.valves.values())
+        self.max_flow = sum(v.flowrate for v in self.valves.values())
         self.distances = GraphDistances(self)
 
     def parse_file(self, path: str) -> dict[str, Valve]:
@@ -71,14 +77,16 @@ class Graph:
     def priority_search(self, current_valve: Valve=None, remaining_time: int=30, open_valves: set[Valve]=None, total_flow: int=0, moves=())  -> int:
         if remaining_time == 0:
             self.n_searched += 1
-            if total_flow > self.max_flow:
+            if total_flow > self.max_total_flow:
                 for m in moves:
                     print(m)
                 print('>>> Total flow:', total_flow)
                 print('>>> N searched:', self.n_searched)
                 print()
-                self.max_flow = total_flow
+                self.max_total_flow = total_flow
             return total_flow
+        if total_flow + remaining_time*self.max_flow <= self.max_total_flow:
+            return 0
         if current_valve is None:
             current_valve = self.valves['AA']
         if open_valves is None:
@@ -114,20 +122,12 @@ class Graph:
 
     def flow_potential_multi_agent(self, current_valves: tuple[Valve], remaining_time: int, open_valves: set[Valve]):
         v1, v2 = current_valves
+        moves1 = self.flow_potential_single_agent(v1, remaining_time, open_valves)
+        moves2 = self.flow_potential_single_agent(v2, remaining_time, open_valves)
         moves = []
-        for target1 in self.valves.values():
-            for target2 in self.valves.values():
-                if target1 == target2 or target1 in open_valves or target2 in open_valves:
-                    continue
-                d1 = self.distances[v1.name, target1.name]
-                d2 = self.distances[v2.name, target2.name]
-                p1 = max(0, remaining_time - d1 - 1) * target1.flowrate
-                p2 = max(0, remaining_time - d2 - 1) * target2.flowrate
-                if p1 + p2 == 0:
-                    continue
-                m1 = Move(target1, p1, d1+1)
-                m2 = Move(target2, p2, d2+1)
-                if v1 == v2 and (m2, m1) in moves:
+        for m1 in moves1:
+            for m2 in moves2:
+                if m1.target == m2.target:
                     continue
                 moves.append((m1, m2))
         return moves
@@ -135,7 +135,7 @@ class Graph:
     def flow_potential_single_agent(self, current_valve: Valve, remaining_time: int, open_valves: set[Valve]):
         moves = []
         for target in self.valves.values():
-            if target in open_valves:
+            if target in open_valves or target.flowrate == 0:
                 continue
             d = self.distances[current_valve.name, target.name]
             p = max(0, remaining_time - d - 1) * target.flowrate
@@ -155,14 +155,16 @@ class Graph:
                            moves=())  -> int:
         if remaining_time == 0:
             self.n_searched += 1
-            if total_flow > self.max_flow:
+            if total_flow >= self.max_total_flow:
                 for m in moves:
                     print(m)
                 print('>>> Total flow:', total_flow)
                 print('>>> N searched:', self.n_searched)
                 print()
-                self.max_flow = total_flow
+                self.max_total_flow = total_flow
             return total_flow
+        if total_flow + remaining_time*self.max_flow <= self.max_total_flow:
+            return 0
         if current_valves is None:
             current_valves = self.valves['AA'], self.valves['AA']
         if open_valves is None:
@@ -173,7 +175,14 @@ class Graph:
         current_flowrate = sum(v.flowrate for v in open_valves)
         
         if m1 is None and m2 is None:
-            next_moves = self.flow_potential_multi_agent(current_valves, remaining_time, open_valves)
+            if v1 != v2:
+                next_moves = self.flow_potential_multi_agent(current_valves, remaining_time, open_valves)
+            else:
+                next_move_single = self.flow_potential_single_agent(v1, remaining_time, open_valves)
+                next_moves = []
+                for i, m1 in enumerate(next_move_single[:-1]):
+                    for m2 in next_move_single[i+1:]:
+                        next_moves.append((m1, m2))
         elif m1 is None:
             next_move1 = self.flow_potential_single_agent(v1, remaining_time, open_valves | {m2.target})
             next_moves = [(m, m2) for m in next_move1]
@@ -195,7 +204,8 @@ class Graph:
             )
         
         outcomes = set()
-        for m1, m2 in sorted(next_moves, key=lambda x: x[0].potential + x[1].potential, reverse=True):
+        move_priority = sorted(next_moves, key=lambda x: x[0].potential + x[1].potential, reverse=True)
+        for m1, m2 in move_priority:
             time_to_next_move = min(m1.remaining_time, m2.remaining_time)
             next_open_valves = copy(open_valves)
             open_valve_text = f'valves {", ".join(v.name for v in open_valves)} are open' if len(open_valves) > 0 else 'No valves are open'
@@ -295,5 +305,7 @@ class GraphDistances:
 
 g = Graph('day16-input')
 # g = Graph('input.txt')
-g.priority_search()
-# g.multi_agent_search()
+# g.priority_search()
+g.multi_agent_search()
+# print(timeit("g = Graph('day16-input'); g.multi_agent_search()", setup="from __main__ import Graph", number=500))
+# print(timeit("g = Graph('day16-input'); g.priority_search()", setup="from __main__ import Graph", number=10))
