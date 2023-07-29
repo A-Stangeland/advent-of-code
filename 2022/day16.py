@@ -30,7 +30,11 @@ class Valve:
         )
 
     def __str__(self) -> str:
-        return f"Valve {self.name} has flow rate={self.flowrate}; tunnels lead to valve{'s' if len(self.downstream_names) > 1 else ''} {', '.join(self.downstream_names)}"
+        return (
+            f"Valve {self.name} has flow rate={self.flowrate}; "
+            f"tunnels lead to valve{'s' if len(self.downstream_names) > 1 else ''} "
+            f"{', '.join(self.downstream_names)}"
+        )
 
 
 @dataclass
