@@ -40,23 +40,23 @@ class Packet:
                 raise ValueError(f"Encountered unexpected value while parsing: {c}")
 
     def compare_packets(self, left: list, right: list, level=0) -> bool:
-        for l, r in zip(left, right):
-            if isinstance(l, int) and isinstance(r, int):
-                if l > r:
+        for L, R in zip(left, right):
+            if isinstance(L, int) and isinstance(R, int):
+                if L > R:
                     return False
-                if l < r:
+                if L < R:
                     return True
-            elif isinstance(l, list) and isinstance(r, list):
-                result = self.compare_packets(l, r, level + 1)
+            elif isinstance(L, list) and isinstance(R, list):
+                result = self.compare_packets(L, R, level + 1)
                 if result is not None:
                     return result
             else:
-                if isinstance(l, int):
-                    result = self.compare_packets([l], r, level + 1)
+                if isinstance(L, int):
+                    result = self.compare_packets([L], R, level + 1)
                     if result is not None:
                         return result
                 else:
-                    result = self.compare_packets(l, [r], level + 1)
+                    result = self.compare_packets(L, [R], level + 1)
                     if result is not None:
                         return result
         if len(left) > len(right):

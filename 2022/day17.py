@@ -1,7 +1,4 @@
-from typing import Iterable, Self
 from itertools import cycle
-from math import lcm
-
 
 ROCKTYPES = ("-", "+", "L", "I", "o")
 
@@ -244,8 +241,8 @@ if __name__ == "__main__":
     jet_path = "day17-input"
     # ----- Part 1 -----
     h1 = tower_height_after_n_rocks(jet_path, 2022)
-    print(f"Height of tower after 2022 rocks:", h1)
+    print("Height of tower after 2022 rocks:", h1)
 
     # # ----- Part 2 -----
     h2 = tower_height_after_n_rocks(jet_path, 1_000_000_000_000)
-    print(f"Height of tower after 1000000000000 rocks:", h2)
+    print("Height of tower after 1000000000000 rocks:", h2)

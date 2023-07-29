@@ -1,4 +1,4 @@
-from typing import Callable, Sequence, Iterable
+from typing import Sequence, Iterable
 from functools import reduce
 
 

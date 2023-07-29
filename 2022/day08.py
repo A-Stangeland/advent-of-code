@@ -20,10 +20,10 @@ class GridIterator:
         self.m = grid.shape[1]
         self.i = i
         self.j = j
-        self.u = 0
-        self.d = 0
-        self.l = 0
-        self.r = 0
+        self.U = 0
+        self.D = 0
+        self.L = 0
+        self.R = 0
 
     def calculate_scenic_score(self) -> int:
         self.up()
@@ -38,7 +38,7 @@ class GridIterator:
             i -= 1
             if not self.valid_index(i, j):
                 break
-            self.u += 1
+            self.U += 1
             if self.is_taller(i, j):
                 break
 
@@ -48,7 +48,7 @@ class GridIterator:
             i += 1
             if not self.valid_index(i, j):
                 break
-            self.d += 1
+            self.D += 1
             if self.is_taller(i, j):
                 break
 
@@ -58,7 +58,7 @@ class GridIterator:
             j -= 1
             if not self.valid_index(i, j):
                 break
-            self.l += 1
+            self.L += 1
             if self.is_taller(i, j):
                 break
 
@@ -68,7 +68,7 @@ class GridIterator:
             j += 1
             if not self.valid_index(i, j):
                 break
-            self.r += 1
+            self.R += 1
             if self.is_taller(i, j):
                 break
 
@@ -82,13 +82,13 @@ class GridIterator:
 
     @property
     def scenic_score(self) -> int:
-        return self.u * self.d * self.l * self.r
+        return self.U * self.D * self.L * self.r
 
 
 def load_grid(path: str) -> np.ndarray:
     with open(path) as f:
         lines = f.read().splitlines()
-    grid = np.array([[int(c) for c in l] for l in lines])
+    grid = np.array([[int(c) for c in line] for line in lines])
     return grid
 
 

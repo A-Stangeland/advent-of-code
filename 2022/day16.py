@@ -1,9 +1,7 @@
 import re
 from copy import copy
 from dataclasses import dataclass
-from typing import Iterable, Optional, Self
-from timeit import timeit
-import pdb
+from typing import Iterable, Self
 
 from day12 import Distance
 
@@ -44,7 +42,11 @@ class Move:
     remaining_time: int
 
     def __repr__(self) -> str:
-        return f"Move(target={self.target.name}, potential={self.potential}, remaining_time={self.remaining_time})"
+        return (
+            f"Move(target={self.target.name}, "
+            f"potential={self.potential}, "
+            f"remaining_time={self.remaining_time})"
+        )
 
 
 class Graph:
@@ -93,16 +95,10 @@ class Graph:
         remaining_time: int = 30,
         open_valves: set[Valve] = None,
         total_flow: int = 0,
-        moves=(),
     ) -> int:
         if remaining_time == 0:
             self.n_searched += 1
             if total_flow > self.max_total_flow:
-                # for m in moves:
-                #     print(m)
-                # print('>>> Total flow:', total_flow)
-                # print('>>> N searched:', self.n_searched)
-                # print()
                 self.max_total_flow = total_flow
             return total_flow
         if total_flow + remaining_time * self.max_flow <= self.max_total_flow:
@@ -124,10 +120,6 @@ class Graph:
                 0,
                 open_valves,
                 total_flow + current_flowrate * remaining_time,
-                moves
-                + (
-                    f"{30-remaining_time:>2} Wait {remaining_time} minutes, flow rate: {current_flowrate:>4}, total flow: {total_flow:>4}",
-                ),
             )
 
         possible_moves = sorted(
@@ -142,10 +134,6 @@ class Graph:
                 remaining_time - d - 1,
                 open_valves | {next_valve},
                 total_flow + current_flowrate * (d + 1),
-                moves
-                + (
-                    f"{30-remaining_time:>2} Move to and open {next_valve.name}, flow rate: {current_flowrate:>4}, total flow: {total_flow:>4}",
-                ),
             )
             outcomes.add(res)
         return max(outcomes)
@@ -187,16 +175,10 @@ class Graph:
         remaining_time: int = 26,
         open_valves: set[Valve] = None,
         total_flow: int = 0,
-        moves=(),
     ) -> int:
         if remaining_time == 0:
             self.n_searched += 1
             if total_flow >= self.max_total_flow:
-                # for m in moves:
-                #     print(m)
-                # print('>>> Total flow:', total_flow)
-                # print('>>> N searched:', self.n_searched)
-                # print()
                 self.max_total_flow = total_flow
             return total_flow
         if total_flow + remaining_time * self.max_flow <= self.max_total_flow:
@@ -244,10 +226,6 @@ class Graph:
                 0,
                 open_valves,
                 total_flow + current_flowrate * remaining_time,
-                moves
-                + (
-                    f"{26-remaining_time:>2} Wait {remaining_time} minutes, flow rate: {current_flowrate:>3}, total flow: {total_flow:>4}",
-                ),
             )
 
         outcomes = set()
@@ -257,16 +235,6 @@ class Graph:
         for m1, m2 in move_priority:
             time_to_next_move = min(m1.remaining_time, m2.remaining_time)
             next_open_valves = copy(open_valves)
-            open_valve_text = (
-                f'valves {", ".join(v.name for v in open_valves)} are open'
-                if len(open_valves) > 0
-                else "No valves are open"
-            )
-            next_moves = (
-                f"{26-remaining_time:>2} - {open_valve_text}, flow rate: {current_flowrate:>3}, total flow: {total_flow:>4}",
-                f"- Agent A opening {m1.target.name} in {m1.remaining_time}",
-                f"- Agent B opening {m2.target.name} in {m2.remaining_time}",
-            )
             if m1.remaining_time - time_to_next_move == 0:
                 next_v1 = m1.target
                 next_m1 = None
@@ -291,7 +259,6 @@ class Graph:
                 remaining_time - time_to_next_move,
                 next_open_valves,
                 total_flow + current_flowrate * time_to_next_move,
-                moves + next_moves,
             )
             outcomes.add(res)
         return max(outcomes)
@@ -366,4 +333,3 @@ class GraphDistances:
 # g = Graph('input.txt')
 # print(g.priority_search())
 # g.multi_agent_search()
-# print(timeit("g = Graph('day16-input'); g.multi_agent_search()", setup="from __main__ import Graph", number=500))

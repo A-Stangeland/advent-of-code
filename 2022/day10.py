@@ -1,6 +1,3 @@
-from typing import Iterable
-
-
 class CPU:
     def __init__(self, recording_cycles: list[int]) -> None:
         self.X = 1
