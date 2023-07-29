@@ -78,11 +78,11 @@ class Graph:
         if remaining_time == 0:
             self.n_searched += 1
             if total_flow > self.max_total_flow:
-                for m in moves:
-                    print(m)
-                print('>>> Total flow:', total_flow)
-                print('>>> N searched:', self.n_searched)
-                print()
+                # for m in moves:
+                #     print(m)
+                # print('>>> Total flow:', total_flow)
+                # print('>>> N searched:', self.n_searched)
+                # print()
                 self.max_total_flow = total_flow
             return total_flow
         if total_flow + remaining_time*self.max_flow <= self.max_total_flow:
@@ -156,11 +156,11 @@ class Graph:
         if remaining_time == 0:
             self.n_searched += 1
             if total_flow >= self.max_total_flow:
-                for m in moves:
-                    print(m)
-                print('>>> Total flow:', total_flow)
-                print('>>> N searched:', self.n_searched)
-                print()
+                # for m in moves:
+                #     print(m)
+                # print('>>> Total flow:', total_flow)
+                # print('>>> N searched:', self.n_searched)
+                # print()
                 self.max_total_flow = total_flow
             return total_flow
         if total_flow + remaining_time*self.max_flow <= self.max_total_flow:
@@ -303,9 +303,8 @@ class GraphDistances:
                 lines.append(f'Distance fromm {k1} to {k2}: {d2:>3}')
         return '\n'.join(lines)
 
-g = Graph('day16-input')
+# g = Graph('day16-input')
 # g = Graph('input.txt')
-# g.priority_search()
-g.multi_agent_search()
+# print(g.priority_search())
+# g.multi_agent_search()
 # print(timeit("g = Graph('day16-input'); g.multi_agent_search()", setup="from __main__ import Graph", number=500))
-# print(timeit("g = Graph('day16-input'); g.priority_search()", setup="from __main__ import Graph", number=10))
