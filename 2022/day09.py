@@ -1,5 +1,6 @@
 from typing import Self, Callable, Iterator
 
+
 class Knot:
     def __init__(self, ahead: Self, behind=None) -> None:
         self.ahead = ahead
@@ -20,7 +21,7 @@ class Knot:
                 self.y += 1
             elif self.ahead.y < self.y:
                 self.y -= 1
-                
+
         if self.ahead.y - self.y > 1:
             self.y += 1
             if self.ahead.x > self.x:
@@ -33,10 +34,10 @@ class Knot:
                 self.x += 1
             elif self.ahead.x < self.x:
                 self.x -= 1
-        
+
         if self.behind is not None:
             self.behind.update_position()
-    
+
     def add_behind(self):
         self.behind = Knot(self)
         return self.behind
@@ -45,32 +46,34 @@ class Knot:
     def position(self) -> tuple[int, int]:
         return (self.x, self.y)
 
+
 class Head(Knot):
     def __init__(self) -> None:
         super().__init__(ahead=None)
-    
+
     def U(self) -> None:
         self.y += 1
         self.behind.update_position()
-    
+
     def D(self) -> None:
         self.y -= 1
         self.behind.update_position()
-    
+
     def L(self) -> None:
         self.x -= 1
         self.behind.update_position()
-    
+
     def R(self) -> None:
         self.x += 1
         self.behind.update_position()
 
+
 class Rope:
-    def __init__(self, length: int=2) -> None:
+    def __init__(self, length: int = 2) -> None:
         self.lenght = length
         self.populate(length)
         self.tail_history = [self.tail.position]
-    
+
     def populate(self, length: int) -> None:
         self.head = Head()
         current_knot = self.head
@@ -86,6 +89,7 @@ class Rope:
             for _ in range(n):
                 move(self)
                 self.record_tail()
+
         return move_n_times
 
     @multistep
@@ -107,7 +111,7 @@ class Rope:
     @property
     def unique_tail_positions(self):
         return len(set(self.tail_history))
-    
+
     def __str__(self) -> str:
         xmin = min([p[0] for p in self.tail_history])
         xmax = max([p[0] for p in self.tail_history])
@@ -118,21 +122,22 @@ class Rope:
         ymin = min(ymin, self.head.y)
         ymax = max(ymax, self.head.y)
         lines = []
-        for y in range(ymin, ymax+1):
+        for y in range(ymin, ymax + 1):
             line = []
-            for x in range(xmin, xmax+1):
-                c = '.'
+            for x in range(xmin, xmax + 1):
+                c = "."
                 if (x, y) in self.tail_history:
-                    c = '#'
+                    c = "#"
                 if (x, y) == (0, 0):
-                    c = 'S'
+                    c = "S"
                 if (x, y) == self.tail.position:
-                    c = 'T'
+                    c = "T"
                 if (x, y) == self.head.position:
-                    c = 'H'
+                    c = "H"
                 line.append(c)
-            lines.append(''.join(line) + '\n')
-        return ''.join(lines[::-1])
+            lines.append("".join(line) + "\n")
+        return "".join(lines[::-1])
+
 
 class RopeSimulator:
     def __init__(self, path: str, rope_length: int) -> None:
@@ -143,20 +148,25 @@ class RopeSimulator:
     def move_generator(path: str) -> Iterator[tuple[str, int]]:
         with open(path) as f:
             moves = f.read().splitlines()
-    
+
         for move in moves:
-            direction, steps = move.split(' ')
+            direction, steps = move.split(" ")
             yield direction, int(steps)
 
     def simulate(self) -> None:
         for direction, n in self.moves:
             match direction:
-                case 'U': self.rope.U(n)
-                case 'D': self.rope.D(n)
-                case 'L': self.rope.L(n)
-                case 'R': self.rope.R(n)
-        print(f'Number of unique tail positions: {self.rope.unique_tail_positions}')
+                case "U":
+                    self.rope.U(n)
+                case "D":
+                    self.rope.D(n)
+                case "L":
+                    self.rope.L(n)
+                case "R":
+                    self.rope.R(n)
+        print(f"Number of unique tail positions: {self.rope.unique_tail_positions}")
         print(self.rope)
 
-r = RopeSimulator('day09-input', 10)
+
+r = RopeSimulator("day09-input", 10)
 r.simulate()

@@ -76,7 +76,7 @@ class Rock:
 
     def down(self):
         self.y -= 1
-    
+
     def __repr__(self) -> str:
         return f"Rock(x={self.x}, y={self.y}, type={self.shape_id})"
 
@@ -161,7 +161,7 @@ class Tetris:
     def height_after_n_rocks(self, n: int) -> None:
         cycle_elements = []
         cycle_heights = []
-        last_rock_type = 'o'
+        last_rock_type = "o"
         last_jet_idx = self.jetcycle_period - 1
         delay_return = 10
         for i in range(n):
@@ -176,7 +176,11 @@ class Tetris:
                 if delay_return == 0:
                     self.add_rocks(remainder)
                     remainder_height = self.tower_height - height_after_cycle
-                    return height_before_cycle + num_cycles*cycle_height + remainder_height
+                    return (
+                        height_before_cycle
+                        + num_cycles * cycle_height
+                        + remainder_height
+                    )
                 delay_return -= 1
             cycle_elements.append((last_jet_idx, last_rock_type))
             cycle_heights.append(self.tower_height)
@@ -195,19 +199,23 @@ class Tetris:
 
     def head(self, n: int) -> None:
         lines = [
-            "|" + "".join(
+            "|"
+            + "".join(
                 ["#" if (x, y) in self.tower[y] else "." for x in range(self.width)]
-            ) + "|"
-            for y in range(self.tower_height-n, self.tower_height)
+            )
+            + "|"
+            for y in range(self.tower_height - n, self.tower_height)
         ]
-        lines.insert(0, (self.width+2) * "~")
+        lines.insert(0, (self.width + 2) * "~")
         print("\n".join([line for line in lines[::-1]]))
 
     def __str__(self) -> str:
         lines = [
-            "|" + "".join(
+            "|"
+            + "".join(
                 ["#" if (x, y) in self.tower[y] else "." for x in range(self.width)]
-            ) + "|"
+            )
+            + "|"
             for y in range(self.tower_height)
         ]
         lines.insert(0, "+" + self.width * "-" + "+")
@@ -215,14 +223,16 @@ class Tetris:
 
     def __repr__(self) -> str:
         lines = [
-            "|" + "".join(
+            "|"
+            + "".join(
                 ["#" if (x, y) in self.tower[y] else "." for x in range(self.width)]
-            ) + "|"
-            for y in range(self.tower_height-8, self.tower_height)
+            )
+            + "|"
+            for y in range(self.tower_height - 8, self.tower_height)
         ]
-        lines.insert(0, (self.width+2) * "~")
+        lines.insert(0, (self.width + 2) * "~")
         return "\n".join([line for line in lines[::-1]])
-        
+
 
 def tower_height_after_n_rocks(jet_path: str, n: int) -> int:
     t = Tetris(jet_path)

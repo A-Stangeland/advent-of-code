@@ -1,26 +1,28 @@
 import re
 from typing import Self, Iterable
 
+
 class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKCYAN = "\033[96m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
+
 
 class Point:
     def __init__(self, x: int, y: int) -> None:
         self.x = x
         self.y = y
-    
+
     @property
     def coords(self):
         return self.x, self.y
-    
+
     def __eq__(self, other: Self) -> bool:
         return self.coords == other.coords
 
@@ -33,20 +35,21 @@ class Point:
             return abs(self.x - x) + abs(self.y - y)
         else:
             return abs(self.x - other.x) + abs(self.y - other.y)
-    
+
     def __str__(self) -> str:
         return str(self.coords)
 
 
 class SensorReport:
-    x_pattern = r'x=(-?\d+)'
-    y_pattern = r'y=(-?\d+)'
+    x_pattern = r"x=(-?\d+)"
+    y_pattern = r"y=(-?\d+)"
+
     def __init__(self, report: str) -> None:
         sensor_coords, beacon_coords = self.parse_report(report)
         self.sensor = Point(*sensor_coords)
         self.beacon = Point(*beacon_coords)
         self.dist = dist(self.sensor, self.beacon)
-    
+
     def parse_report(self, report: str):
         x_matches = re.findall(self.x_pattern, report)
         y_matches = re.findall(self.y_pattern, report)
@@ -65,14 +68,17 @@ class SensorReport:
 - Beacon: {self.beacon}
 - Distance: {self.dist}"""
 
+
 def dist(p1: Point, p2: Point) -> int:
     return abs(p1.x - p2.x) + abs(p1.y - p2.y)
+
 
 def load_reports(path: str) -> list[SensorReport]:
     with open(path) as f:
         lines = f.read().splitlines()
     reports = [SensorReport(line) for line in lines]
     return reports
+
 
 def num_impossible_positions(reports: Iterable[SensorReport], y_line: int) -> int:
     beacons = set([r.beacon for r in reports])
@@ -96,53 +102,56 @@ def num_impossible_positions(reports: Iterable[SensorReport], y_line: int) -> in
         prev_max = max(prev_max, end)
     print(total)
 
+
 def print_search_space(reports: Iterable[SensorReport], bounds: tuple[int, int]):
     l, u = bounds
     lines = []
-    alphabet = 'abcdefghijklmnopqrstuvwxyz'
-    for y in range(l, u+1):
-        line = [f'{y:>2} ']
-        for x in range(l, u+1):
-            c = '.'
+    alphabet = "abcdefghijklmnopqrstuvwxyz"
+    for y in range(l, u + 1):
+        line = [f"{y:>2} "]
+        for x in range(l, u + 1):
+            c = "."
             for i, r in enumerate(reports):
-                if r.sensor.coords == (x,y):
-                    c = bcolors.OKBLUE +'S' + bcolors.ENDC
+                if r.sensor.coords == (x, y):
+                    c = bcolors.OKBLUE + "S" + bcolors.ENDC
                     break
-                elif r.beacon.coords == (x,y):
-                    c = bcolors.OKGREEN + 'B' + bcolors.ENDC
+                elif r.beacon.coords == (x, y):
+                    c = bcolors.OKGREEN + "B" + bcolors.ENDC
                     break
-                elif r.sensor.dist((x,y)) <= r.dist:
+                elif r.sensor.dist((x, y)) <= r.dist:
                     c = alphabet[i]
                     break
             line.append(c)
-        lines.append(''.join(line) + '\n')
-    print(''.join(lines))
+        lines.append("".join(line) + "\n")
+    print("".join(lines))
+
 
 def get_translate_dist(p: Point, r: SensorReport) -> int:
     x, y = p.coords
     t = (y + r.sensor.x - x - r.sensor.y + r.dist) // 2 + 1
     return t
 
+
 def print_t_dist(r: SensorReport):
     sx, sy = r.sensor.coords
     lines = []
     for y in range(sy - r.dist, sy + r.dist + 1):
-        line = [f'{y:>2} ']
+        line = [f"{y:>2} "]
         for x in range(sx - r.dist, sx + r.dist + 1):
             p = Point(x, y)
-            c = '.'
-            if (x,y) == r.sensor.coords:
-                c = 'S'
+            c = "."
+            if (x, y) == r.sensor.coords:
+                c = "S"
             elif dist(p, r.sensor) <= r.dist:
                 c = str(get_translate_dist(p, r))
             line.append(c)
-        lines.append(''.join(line) + '\n')
-    print(''.join(lines))
+        lines.append("".join(line) + "\n")
+    print("".join(lines))
 
 
 def find_beacon(reports: Iterable[SensorReport], bounds: tuple[int, int]) -> int:
     l, u = bounds
-    for row in reversed(range(l, 2*u+1)):
+    for row in reversed(range(l, 2 * u + 1)):
         if row <= u:
             y = row
             x = 0
@@ -161,9 +170,9 @@ def find_beacon(reports: Iterable[SensorReport], bounds: tuple[int, int]) -> int
                     is_open = False
                     break
             if is_open:
-                print(p, 4_000_000*x + y)
+                print(p, 4_000_000 * x + y)
                 return p
 
 
-reports = load_reports('day15-input')
+reports = load_reports("day15-input")
 searched = find_beacon(reports, (0, 4_000_000))

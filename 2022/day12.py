@@ -2,59 +2,64 @@ from typing import Iterable, Any, Self
 from dataclasses import dataclass
 from functools import total_ordering
 
-alphabet = 'abcdefghijklmnopqrstuvwxyz'
+alphabet = "abcdefghijklmnopqrstuvwxyz"
 height_map = {c: i for i, c in enumerate(alphabet)}
 
+
 class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKCYAN = "\033[96m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
+
 
 @total_ordering
 class Distance:
     def __init__(self, d: int | str) -> None:
-        if isinstance(d, int) or d == 'inf':
+        if isinstance(d, int) or d == "inf":
             self.d = d
         else:
-             raise ValueError(f'd must be in or \'int\'. {d=}')
+            raise ValueError(f"d must be in or 'int'. {d=}")
 
     def __eq__(self, other: "Distance") -> bool:
         return self.d == other.d
 
     def __lt__(self, other: "Distance") -> bool:
-        if self.d == 'inf':
+        if self.d == "inf":
             return False
-        if other.d == 'inf':
+        if other.d == "inf":
             return True
         return self.d < other.d
-    
+
     def __add__(self, other: int | Self):
-        if self.d == 'inf':
-            return Distance('inf')
+        if self.d == "inf":
+            return Distance("inf")
         if isinstance(other, int):
             return Distance(self.d + other)
         elif isinstance(other, Distance):
-            if other.d == 'inf':
-                return Distance('inf')
+            if other.d == "inf":
+                return Distance("inf")
             else:
                 return Distance(self.d + other.d)
         else:
-            raise TypeError(f'Addition is not supported between Distance and {type(other)}.')
-    
+            raise TypeError(
+                f"Addition is not supported between Distance and {type(other)}."
+            )
+
     def __str__(self) -> str:
         return str(self.d)
-    
+
     def __int__(self) -> int:
-        if self.d == 'inf':
-            raise ValueError('Distance with value inf can not be converted to inf.')
+        if self.d == "inf":
+            raise ValueError("Distance with value inf can not be converted to inf.")
         return self.d
-            
+
+
 @dataclass
 class Node:
     i: int
@@ -62,51 +67,54 @@ class Node:
     h: int
     c: str
     d: Distance
-    visited: bool=False
-    prev: "Node"=None
+    visited: bool = False
+    prev: "Node" = None
 
     @property
     def position(self) -> tuple[int, int]:
         return self.i, self.j
-    
+
     @property
     def direction(self) -> str:
         if self.prev is None:
-            return '.'
+            return "."
         i, j = self.position
         if i == self.prev.i + 1:
-            return 'V'
+            return "V"
         elif i == self.prev.i - 1:
-            return '^'
+            return "^"
         elif j == self.prev.j + 1:
-            return '>'
+            return ">"
         elif j == self.prev.j - 1:
-            return '<'
+            return "<"
         else:
-            return 'X'
-    
+            return "X"
+
     def __str__(self) -> str:
-        return f'Node(i={self.i}, j={self.j}, h={self.h}, d={self.d})'
-    
+        return f"Node(i={self.i}, j={self.j}, h={self.h}, d={self.d})"
+
+
 class Grid:
-    def __init__(self, height: int, width: int, fill: Any=None) -> None:
+    def __init__(self, height: int, width: int, fill: Any = None) -> None:
         self.height = height
         self.width = width
         self.shape = (height, width)
         self.fill = fill
-        self.values: list[list[Any]] = [[fill for j in range(width)] for i in range(height)]
-    
+        self.values: list[list[Any]] = [
+            [fill for j in range(width)] for i in range(height)
+        ]
+
     def __getitem__(self, idx: tuple[int, int]):
         i, j = idx
         return self.values[i][j]
-    
+
     def __setitem__(self, idx: tuple[int, int], value: Any):
         i, j = idx
         self.values[i][j] = value
-    
+
     def __str__(self) -> str:
-        lines = [''.join([str(item) for item in row]) + '\n' for row in self.values]
-        return ''.join(lines)
+        lines = ["".join([str(item) for item in row]) + "\n" for row in self.values]
+        return "".join(lines)
 
     def iter(self):
         for i in range(self.height):
@@ -114,17 +122,21 @@ class Grid:
                 yield self.values[i][j]
 
     def print_height(self) -> None:
-        height_grid = ''.join([''.join([alphabet[n.h] for n in row]) + '\n' for row in self.values])
-        height_grid = ''.join([bcolors.FAIL + c + bcolors.ENDC if c == 'a' else c for c in height_grid])
+        height_grid = "".join(
+            ["".join([alphabet[n.h] for n in row]) + "\n" for row in self.values]
+        )
+        height_grid = "".join(
+            [bcolors.FAIL + c + bcolors.ENDC if c == "a" else c for c in height_grid]
+        )
         print(height_grid)
 
 
 class Dijkstra:
-    def __init__(self, path: str, reverse: bool=False) -> None:
+    def __init__(self, path: str, reverse: bool = False) -> None:
         self.reverse = reverse
         self.load_map(path)
 
-    def load_map(self, path: str, start: str='S', end: str='E'):
+    def load_map(self, path: str, start: str = "S", end: str = "E"):
         with open(path) as f:
             lines = f.read().splitlines()
 
@@ -136,13 +148,13 @@ class Dijkstra:
             for j, c in enumerate(line):
                 if c == start:
                     h = 0
-                    d = Distance(0) if not self.reverse else Distance('inf')
+                    d = Distance(0) if not self.reverse else Distance("inf")
                 elif c == end:
                     h = 25
-                    d = Distance('inf') if not self.reverse else Distance(0)
+                    d = Distance("inf") if not self.reverse else Distance(0)
                 else:
                     h = height_map[c]
-                    d = Distance('inf')
+                    d = Distance("inf")
                 new_node = Node(i, j, h, c, d)
                 self.unvisited.append(new_node)
                 self.grid[i, j] = new_node
@@ -150,16 +162,16 @@ class Dijkstra:
                     self.start_node = new_node
                 if c == end:
                     self.end_node = new_node
-    
+
     def pop_unvisited(self) -> Node:
         min_index = 0
-        min_distance = Distance('inf')
+        min_distance = Distance("inf")
         for i, node in enumerate(self.unvisited):
             if node.d < min_distance:
                 min_index = i
                 min_distance = node.d
         return self.unvisited.pop(min_index)
-    
+
     def valid_step(self, node_from: Node, node_to: Node) -> bool:
         if not self.reverse:
             return node_to.h - node_from.h <= 1
@@ -167,14 +179,14 @@ class Dijkstra:
 
     def neighbors(self, node: Node) -> Iterable[Node]:
         i, j = node.position
-        if i + 1 < self.grid.height and self.valid_step(node, self.grid[i+1,j]):
-            yield self.grid[i+1,j]
-        if j + 1 < self.grid.width and self.valid_step(node, self.grid[i,j+1]):
-            yield self.grid[i,j+1]
-        if i > 0 and self.valid_step(node, self.grid[i-1,j]):
-            yield self.grid[i-1,j]
-        if j > 0 and self.valid_step(node, self.grid[i,j-1]):
-            yield self.grid[i,j-1]
+        if i + 1 < self.grid.height and self.valid_step(node, self.grid[i + 1, j]):
+            yield self.grid[i + 1, j]
+        if j + 1 < self.grid.width and self.valid_step(node, self.grid[i, j + 1]):
+            yield self.grid[i, j + 1]
+        if i > 0 and self.valid_step(node, self.grid[i - 1, j]):
+            yield self.grid[i - 1, j]
+        if j > 0 and self.valid_step(node, self.grid[i, j - 1]):
+            yield self.grid[i, j - 1]
 
     def solve(self):
         while len(self.unvisited) > 0:
@@ -192,9 +204,9 @@ class Dijkstra:
             self.print_path(self.end_node)
         else:
             self.print_path(self.start_node)
-    
+
     def find_min(self):
-        min_distance = Distance('inf')
+        min_distance = Distance("inf")
         min_node = None
         for node in self.grid.iter():
             if node.h != 0:
@@ -204,14 +216,14 @@ class Dijkstra:
                 min_distance = node.d
                 min_node = node
         self.print_path(min_node)
-        
+
     def print_path(self, node: Node):
-        print_grid = Grid(self.grid.height, self.grid.width, fill='.')
+        print_grid = Grid(self.grid.height, self.grid.width, fill=".")
         current_node = node
         while current_node.prev is not None:
             i, j = current_node.position
             c = current_node.direction
-            print_grid[i,j] = f"{bcolors.FAIL}{c}{bcolors.ENDC}"
+            print_grid[i, j] = f"{bcolors.FAIL}{c}{bcolors.ENDC}"
             current_node = current_node.prev
         print(print_grid)
         print(node.d)
@@ -219,16 +231,16 @@ class Dijkstra:
     def print_grid(self):
         print_grid = Grid(self.grid.height, self.grid.width)
         for i in range(self.grid.height):
-            for j  in range(self.grid.width):
-                if self.grid[i,j] == self.end_node:
+            for j in range(self.grid.width):
+                if self.grid[i, j] == self.end_node:
                     print_grid[i, j] = f"{bcolors.OKGREEN}E{bcolors.ENDC}"
                 else:
-                    print_grid[i, j] = self.grid[i,j].direction
+                    print_grid[i, j] = self.grid[i, j].direction
         print(print_grid)
-    
 
-if __name__ == '__main__':
-    d = Dijkstra('day12-input')
+
+if __name__ == "__main__":
+    d = Dijkstra("day12-input")
     d.solve()
     d.print_path(d.end_node)
     d.grid.print_height()
