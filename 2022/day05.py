@@ -13,12 +13,10 @@ class Stacks:
             lines = f.read().splitlines()
         self.initial_stack_lines = lines[:8]
         self.moves = lines[10:]
-        # self.initial_stack_lines = lines[:3]
-        # self.moves = lines[5:]
 
     def _init_stacks(self):
-        for l in self.initial_stack_lines[::-1]:
-            for i, c in enumerate(l[1::4]):
+        for line in self.initial_stack_lines[::-1]:
+            for i, c in enumerate(line[1::4]):
                 if c != " ":
                     self.stacks[i].append(c)
 
@@ -26,9 +24,6 @@ class Stacks:
         remainder, to_move = self.stacks[i1][:-n], self.stacks[i1][-n:]
         self.stacks[i1] = remainder
         self.stacks[i2].extend(to_move)
-        # remainder, to_move = self.stacks[i1][:-1], self.stacks[i1][-1:]
-        # self.stacks[i1] = remainder
-        # self.stacks[i2].extend(to_move)
 
     def execute_moves(self, n_moves=None):
         moveset = self.moves if n_moves is None else self.moves[:n_moves]
