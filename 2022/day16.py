@@ -329,7 +329,7 @@ class GraphDistances:
         return "\n".join(lines)
 
 
-# g = Graph('day16-input')
-# g = Graph('input.txt')
-# print(g.priority_search())
-# g.multi_agent_search()
+if __name__ == "__main__":
+    g = Graph("day16-input")
+    print(g.priority_search())
+    print(g.multi_agent_search())
