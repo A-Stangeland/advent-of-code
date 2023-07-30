@@ -1,12 +1,12 @@
+from aocd import get_data
 from typing import Iterable
 
 Point = tuple[int, int, int]
 
 
-def load_points(path: str) -> set[Point]:
-    with open(path) as f:
-        lines = f.read().splitlines()
-    points = {tuple(int(x) for x in line.split(",")) for line in lines}
+def load_points() -> set[Point]:
+    data = get_data(day=18, year=2022)
+    points = {tuple(int(x) for x in line.split(",")) for line in data.splitlines()}
     return points
 
 
@@ -21,8 +21,8 @@ def num_exposed_faces(points: set[Point]) -> int:
 
 
 class LavaDroplet:
-    def __init__(self, path: str) -> None:
-        self.droplet = load_points(path)
+    def __init__(self) -> None:
+        self.droplet = load_points()
         self.set_bounds(pad=1)
         self.steam: set[Point] = set()
         self.steam_source: Point = (0, 0, 0)
@@ -88,10 +88,18 @@ class LavaDroplet:
         return "\n\n".join(layers)
 
 
-path = "day18-input"
-points = load_points(path)
-print("Number of exposed faces:", num_exposed_faces(points))
-lava = LavaDroplet(path)
-exterior_faces = lava.exterior_surface()
-print("Number of exterior faces:", exterior_faces)
-print(lava)
+def part1() -> int:
+    points = load_points()
+    return num_exposed_faces(points)
+
+
+def part2() -> int:
+    lava = LavaDroplet()
+    return lava.exterior_surface()
+
+
+if __name__ == "__main__":
+    print("--- Part 1 ---")
+    print("Number of exposed faces:", part1())
+    print("--- Part 2 ---")
+    print("Number of exterior faces:", part2())
