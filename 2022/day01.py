@@ -1,20 +1,25 @@
-a, b, c = 0, 0, 0
-running_total = 0
-with open("day-01-input") as f:
-    for line in f:
-        if line != "\n":
-            running_total += int(line)
-            continue
+from aocd import get_data
+from typing import Iterable
 
-        if running_total < a:
-            pass
-        elif running_total < b:
-            a = running_total
-        elif running_total < c:
-            a, b = b, running_total
-        else:
-            a, b, c = b, c, running_total
+data = get_data(year=2022, day=1)
 
-        running_total = 0
 
-print(a, b, c, sum((a, b, c)))
+def packet_sums(data: str) -> Iterable[int]:
+    return sorted(
+        sum(int(x) for x in packet.split("\n")) for packet in data.split("\n\n")
+    )
+
+
+def part1() -> int:
+    return packet_sums(data)[-1]
+
+
+def part2() -> int:
+    return sum(packet_sums(data)[-3:])
+
+
+if __name__ == "__main__":
+    print("--- Part 1 ---")
+    print(part1())
+    print("--- Part 2 ---")
+    print(part2())
