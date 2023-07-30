@@ -1,12 +1,14 @@
-from aocd import get_data
+from aocd.models import Puzzle
 from typing import Iterable
+
+puzzle = Puzzle(year=2022, day=18)
 
 Point = tuple[int, int, int]
 
 
-def load_points() -> set[Point]:
-    data = get_data(day=18, year=2022)
-    points = {tuple(int(x) for x in line.split(",")) for line in data.splitlines()}
+def parse_data(data: str) -> set[Point]:
+    split_lines = (line.split(",") for line in data.splitlines())
+    points = {(int(x), int(y), int(z)) for x, y, z in split_lines}
     return points
 
 
@@ -21,8 +23,8 @@ def num_exposed_faces(points: set[Point]) -> int:
 
 
 class LavaDroplet:
-    def __init__(self) -> None:
-        self.droplet = load_points()
+    def __init__(self, points: set[Point]) -> None:
+        self.droplet = points
         self.set_bounds(pad=1)
         self.steam: set[Point] = set()
         self.steam_source: Point = (0, 0, 0)
@@ -35,7 +37,7 @@ class LavaDroplet:
         self.zmin: int = min(z for (_, _, z) in self.droplet) - pad
         self.zmax: int = max(z for (_, _, z) in self.droplet) + pad
 
-    def out_of_bounds(self, point: set[Point]) -> bool:
+    def out_of_bounds(self, point: Point) -> bool:
         x, y, z = point
         if x < self.xmin or x > self.xmax:
             return True
@@ -45,7 +47,7 @@ class LavaDroplet:
             return True
         return False
 
-    def neighbors(self, point: set[Point]) -> Iterable[Point]:
+    def neighbors(self, point: Point) -> Iterable[Point]:
         x, y, z = point
         yield x - 1, y, z
         yield x + 1, y, z
@@ -88,18 +90,21 @@ class LavaDroplet:
         return "\n\n".join(layers)
 
 
-def part1() -> int:
-    points = load_points()
-    return num_exposed_faces(points)
+def part1(data: str) -> str:
+    points = parse_data(data)
+    exposed_faces = num_exposed_faces(points)
+    return str(exposed_faces)
 
 
-def part2() -> int:
-    lava = LavaDroplet()
-    return lava.exterior_surface()
+def part2(data: str) -> str:
+    points = parse_data(data)
+    lava = LavaDroplet(points)
+    exterior_faces = lava.exterior_surface()
+    return str(exterior_faces)
 
 
 if __name__ == "__main__":
     print("--- Part 1 ---")
-    print("Number of exposed faces:", part1())
+    print("Number of exposed faces:", part1(puzzle.input_data))
     print("--- Part 2 ---")
-    print("Number of exterior faces:", part2())
+    print("Number of exterior faces:", part2(puzzle.input_data))
