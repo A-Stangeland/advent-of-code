@@ -1,7 +1,8 @@
-from aocd import get_data
+from aocd.models import Puzzle
 from typing import Iterable
 
-data = get_data(year=2022, day=1)
+puzzle = Puzzle(year=2022, day=1)
+# data = get_data(year=2022, day=1)
 
 
 def packet_sums(data: str) -> Iterable[int]:
@@ -10,16 +11,19 @@ def packet_sums(data: str) -> Iterable[int]:
     )
 
 
-def part1() -> int:
-    return packet_sums(data)[-1]
+def part1(data: str) -> str:
+    max_sum = packet_sums(data)[-1]
+    return str(max_sum)
 
 
-def part2() -> int:
-    return sum(packet_sums(data)[-3:])
+def part2(data: str) -> str:
+    top_three_sum = sum(packet_sums(data)[-3:])
+    return str(top_three_sum)
 
 
 if __name__ == "__main__":
     print("--- Part 1 ---")
-    print(part1())
+    print(part1(puzzle.input_data))
     print("--- Part 2 ---")
-    print(part2())
+    print(part2(puzzle.input_data))
+    print(puzzle.examples)
