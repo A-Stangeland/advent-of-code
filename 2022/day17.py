@@ -1,4 +1,7 @@
+from aocd.models import Puzzle
 from itertools import cycle
+
+puzzle = Puzzle(year=2022, day=17)
 
 ROCKTYPES = ("-", "+", "L", "I", "o")
 
@@ -26,6 +29,10 @@ class Rock:
                 return set([(0, 0), (0, 1), (0, 2), (0, 3)])
             case "o":
                 return set([(0, 0), (1, 0), (0, 1), (1, 1)])
+            case _:
+                raise ValueError(
+                    f"Expected shape_id to be one of {ROCKTYPES}. Got {shape_id}"
+                )
 
     @property
     def origin(self) -> tuple[int, int]:
@@ -79,10 +86,8 @@ class Rock:
 
 
 class Tetris:
-    def __init__(self, path: str) -> None:
-        self.path = path
-        with open(path) as f:
-            data = f.read().strip()
+    def __init__(self, data: str) -> None:
+        data = data.strip()
         self.jetcycle_period = len(data)
         self.rockcycle_period = len(ROCKTYPES)
         self.jetcycle = cycle(enumerate(data))
@@ -142,7 +147,7 @@ class Tetris:
         for x, y in rock.coordinates:
             self.tower[y].add((x, y))
 
-    def add_rocks(self, n: int) -> None:
+    def add_rocks(self, n: int) -> int:
         for _ in range(n):
             rock = self.next_rock()
             for _, jet in self.jetcycle:
@@ -154,10 +159,11 @@ class Tetris:
                     break
                 else:
                     rock.down()
+        return self.tower_height
 
-    def height_after_n_rocks(self, n: int) -> None:
-        cycle_elements = []
-        cycle_heights = []
+    def height_after_n_rocks(self, n: int) -> int:
+        cycle_elements: list[tuple[int, str]] = []
+        cycle_heights: list[int] = []
         last_rock_type = "o"
         last_jet_idx = self.jetcycle_period - 1
         delay_return = 10
@@ -193,6 +199,7 @@ class Tetris:
                     break
                 else:
                     rock.down()
+        return self.tower_height
 
     def head(self, n: int) -> None:
         lines = [
@@ -236,13 +243,23 @@ def tower_height_after_n_rocks(jet_path: str, n: int) -> int:
     return t.add_rocks(n)
 
 
+def part1(data: str) -> str:
+    t = Tetris(data)
+    h1 = t.height_after_n_rocks(2022)
+    return str(h1)
+
+
+def part2(data: str) -> str:
+    t = Tetris(data)
+    h2 = t.height_after_n_rocks(1_000_000_000_000)
+    return str(h2)
+
+
 if __name__ == "__main__":
-    # jet_path = "input.txt"
-    jet_path = "day17-input"
-    # ----- Part 1 -----
-    h1 = tower_height_after_n_rocks(jet_path, 2022)
+    print("--- Part 1 ---")
+    h1 = part1(puzzle.input_data)
     print("Height of tower after 2022 rocks:", h1)
 
-    # # ----- Part 2 -----
-    h2 = tower_height_after_n_rocks(jet_path, 1_000_000_000_000)
+    print("--- Part 2 ---")
+    h2 = part2(puzzle.input_data)
     print("Height of tower after 1000000000000 rocks:", h2)
