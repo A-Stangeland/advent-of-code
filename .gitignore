@@ -3,4 +3,5 @@
 *.txt
 *.ipynb
 *__pycache__
+session.sh
 .vscode
