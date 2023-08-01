@@ -1,4 +1,4 @@
-from aocd.models import Puzzle
+from aocd.models import Puzzle  # type: ignore
 from itertools import cycle
 
 puzzle = Puzzle(year=2022, day=17)

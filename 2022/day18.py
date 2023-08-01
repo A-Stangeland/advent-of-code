@@ -1,4 +1,4 @@
-from aocd.models import Puzzle
+from aocd.models import Puzzle  # type: ignore
 from typing import Iterable
 
 puzzle = Puzzle(year=2022, day=18)
