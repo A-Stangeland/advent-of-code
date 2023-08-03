@@ -39,4 +39,5 @@ jobs:
       env:
         $AOC_SESSION: ${{ secrets.AOC_TOKEN }}
       run: |
+        echo $AOC_SESSION
         pytest 2022
