@@ -1,6 +1,5 @@
-*input
+input.txt
 *tmp*
-*.txt
 *.ipynb
 *__pycache__
 .vscode
