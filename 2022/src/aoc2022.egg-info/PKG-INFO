@@ -1,0 +1,6 @@
+Metadata-Version: 2.1
+Name: aoc2022
+Version: 0.0.0
+Summary: Advent of Code 2022
+Author: Aleksander Stangeland
+Requires-Python: >=3.11
