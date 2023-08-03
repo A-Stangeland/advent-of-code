@@ -37,6 +37,6 @@ jobs:
         flake8 2022 --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       env:
-        AOC_TOKEN: ${{ secrets.AOC_TOKEN }}
+        $AOC_SESSION: ${{ secrets.AOC_TOKEN }}
       run: |
         pytest 2022
