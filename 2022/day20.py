@@ -85,7 +85,6 @@ class Decrypter:
 
     def process_queue(self, n: int = 1):
         for _ in range(n):
-            # print(self)
             for e in self.queue:
                 self.shift_element(e)
 
@@ -104,8 +103,6 @@ def part2(data: str) -> str:
 
 if __name__ == "__main__":
     print("--- Part 1 ---")
-    # print("Sum of positions:", part1(puzzle.examples[0].input_data))
     print("Sum of positions:", part1(puzzle.input_data))
     print("--- Part 2 ---")
-    # print("Sum of positions:", part2(puzzle.examples[0].input_data))
     print("Sum of positions:", part2(puzzle.input_data))
