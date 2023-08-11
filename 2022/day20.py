@@ -1,13 +1,25 @@
 from aocd.models import Puzzle  # type: ignore
-from dataclasses import dataclass
+
+from typing import Self, Optional, Iterable
 
 puzzle = Puzzle(year=2022, day=20)
 
 
-@dataclass
 class CiferElement:
-    position: int
-    value: int
+    def __init__(self, value: int):
+        self.value = value
+        self.prev: Optional[Self] = None
+        self.next: Optional[Self] = None
+
+    def __repr__(self) -> str:
+        prev_value = self.prev.value if self.prev is not None else "None"
+        next_value = self.next.value if self.next is not None else "None"
+        return f"CiferElement(n={self.value}, prev={prev_value}, next={next_value})"
+
+
+def link(e1: CiferElement, e2: CiferElement):
+    e1.next = e2
+    e2.prev = e1
 
 
 class Decrypter:
@@ -15,81 +27,72 @@ class Decrypter:
         self.parse_data(data)
 
     def parse_data(self, data: str) -> None:
-        self.initial_queue = []
-        self.shifted_positions = []
-        for i, n in enumerate(data.splitlines()):
-            e = CiferElement(i, int(n))
-            self.initial_queue.append(e)
-            self.shifted_positions.append(e)
+        self.queue: list[CiferElement] = []
+        lines = data.splitlines()
+        for n in lines:
+            e = CiferElement(int(n))
             if e.value == 0:
                 self.zero = e
-        self.cifer_lenght = len(self.initial_queue)
-
-    def print_move(self, e: CiferElement, new_position: int):
-        left = self.shifted_positions[new_position].value
-        right = self.shifted_positions[(new_position + 1) % self.cifer_lenght].value
-        print(f"{e.value} moves between {left} and {right}")
-
-    def get_new_position(self, e: CiferElement):
-        if e.value >= 0:
-            return (e.position + e.value) % self.cifer_lenght
-        else:
-            return (e.position + e.value) % self.cifer_lenght
+            if len(self.queue) > 0:
+                link(self.queue[-1], e)
+            self.queue.append(e)
+        link(self.queue[-1], self.queue[0])
+        self.cifer_lenght = len(self.queue)
 
     def shift_element(self, e: CiferElement):
-        current_position = e.position
-        new_position = self.get_new_position(e)
-        self.print_move(e, new_position)
-        if new_position > current_position:
-            for other_e in self.shifted_positions[
-                current_position + 1 : new_position + 1
-            ]:
-                other_e.position -= 1
-            self.shifted_positions.pop(current_position)
-            self.shifted_positions.insert(new_position, e)
-            e.position = new_position
-        elif new_position < current_position:
-            # new_position += 1
-            for other_e in self.shifted_positions[new_position:current_position]:
-                other_e.position += 1
-            self.shifted_positions.pop(current_position)
-            self.shifted_positions.insert(new_position, e)
-            e.position = new_position
+        old_prev = e.prev
+        old_next = e.next
+        link(old_prev, old_next)
+        new_prev = old_prev
+        if e.value > 0:
+            shift = e.value % (self.cifer_lenght - 1)
+            for _ in range(shift):
+                new_prev = new_prev.next
+        if e.value < 0:
+            shift = -e.value % (self.cifer_lenght - 1)
+            for _ in range(shift):
+                new_prev = new_prev.prev
+        new_next = new_prev.next
+        link(new_prev, e)
+        link(e, new_next)
 
     def nth_after_zero(self, n: int) -> int:
-        i = (self.zero.position + n) % self.cifer_lenght
-        e = self.shifted_positions[i]
-        print(e.value)
-        return e.value
+        shift = n % self.cifer_lenght
+        pointer = self.zero
+        for _ in range(shift):
+            pointer = pointer.next
+        print(pointer.value)
+        return pointer.value
 
-    def __str__(self) -> str:
-        return (
-            ", ".join(str(e.value) for e in self.shifted_positions)
-            + "\n"
-            + ", ".join(str(e.position) for e in self.shifted_positions)
-        )
+    def __len__(self) -> int:
+        return self.cifer_lenght
+
+    def elements(self) -> Iterable[CiferElement]:
+        current = self.zero
+        for _ in range(self.cifer_lenght):
+            yield current
+            current = current.next
+
+    def values(self) -> Iterable[int]:
+        current = self.zero
+        for _ in range(self.cifer_lenght):
+            yield current.value
+            current = current.next
+
+    def __repr__(self) -> str:
+        return ", ".join(str(n) for n in self.values())
 
     def process_queue(self):
-        print("Initial arangement:")
-        # print(self)
-        while self.initial_queue:
-            # print()
-            e = self.initial_queue.pop(0)
+        while self.queue:
+            e = self.queue.pop(0)
             self.shift_element(e)
-            # print(self)
-
-    def validate_index(self):
-        for i, e in enumerate(self.shifted_positions):
-            print(i, e.position)
-            if i != e.position:
-                raise IndexError()
 
 
 def part1(data: str) -> str:
     d = Decrypter(data)
+    print(d)
     d.process_queue()
-    d.validate_index()
-    return sum(d.nth_after_zero(n) for n in [1000, 2000, 3000])
+    return str(sum(d.nth_after_zero(n) for n in [1000, 2000, 3000]))
 
 
 def part2(data: str) -> str:
@@ -98,9 +101,9 @@ def part2(data: str) -> str:
 
 if __name__ == "__main__":
     print("--- Part 1 ---")
-    print("Sum of positions:", part1(puzzle.examples[0].input_data))
-    # print("Sum of positions:", part1(puzzle.input_data))
+    # with open("input.txt") as f:
+    # print("Sum of positions:", part1(f.read()))
+    # print("Sum of positions:", part1(puzzle.examples[0].input_data))
+    print("Sum of positions:", part1(puzzle.input_data))
     # print("--- Part 2 ---")
     # print("Product of first three blueprints:", part2(puzzle.input_data))
-# d = Decrypter(puzzle.examples[0].input_data)
-# d.process_queue()
