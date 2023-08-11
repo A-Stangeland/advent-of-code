@@ -23,14 +23,16 @@ def link(e1: CiferElement, e2: CiferElement):
 
 
 class Decrypter:
-    def __init__(self, data: str) -> None:
+    def __init__(self, data: str, decryption_key: int = 1) -> None:
+        self.decryption_key = decryption_key
         self.parse_data(data)
 
     def parse_data(self, data: str) -> None:
         self.queue: list[CiferElement] = []
         lines = data.splitlines()
-        for n in lines:
-            e = CiferElement(int(n))
+        for line in lines:
+            n = int(line) * self.decryption_key
+            e = CiferElement(n)
             if e.value == 0:
                 self.zero = e
             if len(self.queue) > 0:
@@ -61,7 +63,6 @@ class Decrypter:
         pointer = self.zero
         for _ in range(shift):
             pointer = pointer.next
-        print(pointer.value)
         return pointer.value
 
     def __len__(self) -> int:
@@ -82,28 +83,29 @@ class Decrypter:
     def __repr__(self) -> str:
         return ", ".join(str(n) for n in self.values())
 
-    def process_queue(self):
-        while self.queue:
-            e = self.queue.pop(0)
-            self.shift_element(e)
+    def process_queue(self, n: int = 1):
+        for _ in range(n):
+            # print(self)
+            for e in self.queue:
+                self.shift_element(e)
 
 
 def part1(data: str) -> str:
     d = Decrypter(data)
-    print(d)
     d.process_queue()
     return str(sum(d.nth_after_zero(n) for n in [1000, 2000, 3000]))
 
 
 def part2(data: str) -> str:
-    pass
+    d = Decrypter(data, decryption_key=811589153)
+    d.process_queue(10)
+    return str(sum(d.nth_after_zero(n) for n in [1000, 2000, 3000]))
 
 
 if __name__ == "__main__":
     print("--- Part 1 ---")
-    # with open("input.txt") as f:
-    # print("Sum of positions:", part1(f.read()))
     # print("Sum of positions:", part1(puzzle.examples[0].input_data))
     print("Sum of positions:", part1(puzzle.input_data))
-    # print("--- Part 2 ---")
-    # print("Product of first three blueprints:", part2(puzzle.input_data))
+    print("--- Part 2 ---")
+    # print("Sum of positions:", part2(puzzle.examples[0].input_data))
+    print("Sum of positions:", part2(puzzle.input_data))
