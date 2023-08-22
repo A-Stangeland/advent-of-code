@@ -5,15 +5,40 @@ from typing import Self, Optional, Iterable
 puzzle = Puzzle(year=2022, day=20)
 
 
+class NotLinkedError(Exception):
+    pass
+
+
 class CiferElement:
     def __init__(self, value: int):
         self.value = value
-        self.prev: Optional[Self] = None
-        self.next: Optional[Self] = None
+        self.linked: bool = False
+        self._prev: Optional[Self] = None
+        self._next: Optional[Self] = None
+
+    @property
+    def prev(self) -> Self:
+        if self._prev is None:
+            raise NotLinkedError
+        return self._prev
+
+    @prev.setter
+    def prev(self, other: Self) -> None:
+        self._prev = other
+
+    @property
+    def next(self) -> Self:
+        if self._next is None:
+            raise NotLinkedError
+        return self._next
+
+    @next.setter
+    def next(self, other: Self) -> None:
+        self._next = other
 
     def __repr__(self) -> str:
-        prev_value = self.prev.value if self.prev is not None else "None"
-        next_value = self.next.value if self.next is not None else "None"
+        prev_value = self._prev.value if self._prev is not None else "None"
+        next_value = self._next.value if self._next is not None else "None"
         return f"CiferElement(n={self.value}, prev={prev_value}, next={next_value})"
 
 
