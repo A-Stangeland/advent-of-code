@@ -1,3 +1,5 @@
+"""Generates a new template file for the next days challenge."""
+
 import os
 import glob
 
@@ -11,13 +13,13 @@ puzzle = Puzzle(year={year}, day={max_day+1})
 
 
 def part1(data: str) -> str:
-\tpass
+    pass
 
 def part2(data: str) -> str:
-\tpass
+    pass
 
-if __name__==\"__main__\":
-\tpass
+if __name__ == \"__main__\":
+    pass
 """
 
 with open(f"day{max_day+1}.py", "w") as f:
