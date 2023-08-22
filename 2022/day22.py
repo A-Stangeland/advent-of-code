@@ -15,10 +15,10 @@ class Manifold:
         self.height = len(self.map)
         self.width = max(len(row) for row in self.map)
         self.cube_size = self.height // 4
-        self.i = 0
-        self.j = self.map[self.i].index(".")
-        self.d = 0
-        self.path = {(self.i, self.j): self.d}
+        self.i: int = 0
+        self.j: int = self.map[self.i].index(".")
+        self.d: int = 0
+        self.path: dict[tuple[int, int], int] = {(self.i, self.j): self.d}
         self.left_edge = self.get_left_edge()
         self.right_edge = [len(row) - 1 for row in self.map]
         self.upper_edge = self.get_upper_edge()
@@ -190,14 +190,14 @@ class Manifold:
         return "\n".join(["".join(line) for line in lines])
 
 
-def part1(data: str) -> str:
+def part1(data: str) -> int:
     m = Manifold(data, cube=False)
     password = m.execute_moves()
     # print(m)
     return password
 
 
-def part2(data: str) -> str:
+def part2(data: str) -> int:
     m = Manifold(data, cube=True)
     password = m.execute_moves()
     # print(m)
