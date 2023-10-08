@@ -138,16 +138,21 @@ def geode_upper_bound(factory: RobotFactory, time_left: int) -> int:
 class GeodeOptimizer:
     def __init__(self, time_limit: int) -> None:
         self.time_limit = time_limit
+        self.current_max: int = 0
+
+    def max_geode_production(self, blueprint) -> int:
+        id_number, robot_cost = parse_blueprint(blueprint)
+        factory = RobotFactory(robot_cost)
+        self.current_max = 0
+        geode_production = self.max_geode_production_recur(factory, self.time_limit, "")
+        print(id_number, geode_production)
+        return geode_production
 
     def max_geode_production_recur(
         self, factory: RobotFactory, time_left: int, build_order: str
     ) -> int:
         if time_left == 0:
             if factory.resource_pool["geode"] > self.current_max:
-                # print("------------")
-                # print(build_order)
-                # print(factory.production)
-                # print(factory.resource_pool)
                 self.current_max = factory.resource_pool["geode"]
             return factory.resource_pool["geode"]
         if geode_upper_bound(factory, time_left) < self.current_max:
@@ -177,14 +182,6 @@ class GeodeOptimizer:
                     )
                 )
         return max(outcomes)
-
-    def max_geode_production(self, blueprint):
-        id_number, robot_cost = parse_blueprint(blueprint)
-        factory = RobotFactory(robot_cost)
-        self.current_max = 0
-        geode_production = self.max_geode_production_recur(factory, self.time_limit, "")
-        print(id_number, geode_production)
-        return geode_production
 
     def quality_level(self, blueprint: str):
         id_number, robot_cost = parse_blueprint(blueprint)
@@ -220,12 +217,12 @@ def test_factory(blueprint: str):
         print(factory)
 
 
-def part1(data: str) -> str:
+def part1(data: str) -> int:
     g = GeodeOptimizer(24)
     return sum(g.quality_level(blueprint) for blueprint in data.splitlines())
 
 
-def part2(data: str) -> str:
+def part2(data: str) -> int:
     g = GeodeOptimizer(32)
     return math.prod(
         g.max_geode_production(blueprint) for blueprint in data.splitlines()[:3]
