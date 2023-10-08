@@ -23,10 +23,8 @@ class CellularSim:
         for i in range(4):
             yield (self.DIRECTIONS[(self.cycle_start + i) % 4])
 
-    def get_move_direction(self, coord: tuple[int, int]) -> Optional[str]:
-        i, j = coord
-        valid_directions = {"N", "S", "W", "E"}
-        for d, x in (
+    def step_cycle(self, i: int, j: int) -> list[tuple[set[str], tuple[int, int]]]:
+        return [
             ({"N", "W"}, (i - 1, j - 1)),
             ({"N"}, (i - 1, j)),
             ({"N", "E"}, (i - 1, j + 1)),
@@ -35,7 +33,11 @@ class CellularSim:
             ({"S", "W"}, (i + 1, j - 1)),
             ({"S"}, (i + 1, j)),
             ({"S", "E"}, (i + 1, j + 1)),
-        ):
+        ]
+
+    def get_move_direction(self, coord: tuple[int, int]) -> Optional[str]:
+        valid_directions = {"N", "S", "W", "E"}
+        for d, x in self.step_cycle(*coord):
             if x in self.coordinates:
                 valid_directions -= d
         if len(valid_directions) in (0, 4):
@@ -43,6 +45,7 @@ class CellularSim:
         for direction in self.direction_cycle():
             if direction in valid_directions:
                 return direction
+        return None
 
     def get_direction_coord(
         self, coord: tuple[int, int], direction: str
@@ -57,6 +60,8 @@ class CellularSim:
                 return i, j - 1
             case "E":
                 return i, j + 1
+            case _:
+                raise ValueError(f"{direction} is not a valid direction.")
 
     def step(self) -> bool:
         move_proposals: dict[tuple[int, int], tuple[int, int]] = dict()
