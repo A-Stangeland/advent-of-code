@@ -3,4 +3,7 @@
 *.txt
 *.ipynb
 *__pycache__
+
+*target
+
 .vscode
